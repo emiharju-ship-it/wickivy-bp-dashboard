@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wickivy Seasonal Battle Pass & Reward Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            pink: '#ffd1dc',
+                            lavender: '#e6e6fa',
+                            peach: '#ffdab9',
+                            mint: '#b0e0e6',
+                            purple: '#b19cd9',
+                            dark: '#2d2538',
+                            bg: '#f9f6fc'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-pastel-bg text-pastel-dark font-sans min-h-screen flex flex-col antialiased selection:bg-pastel-pink selection:text-pastel-dark">
+
+    <!-- Top Navigation -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-pastel-lavender sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pastel-purple to-pastel-pink flex items-center justify-center text-white shadow-md shadow-pastel-purple/20">
+                    <i class="fa-solid fa-crown text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+                        Wickivy Battle Pass <span class="text-xs bg-pastel-pink/50 text-pastel-dark px-2 py-0.5 rounded-full font-semibold">Season 1</span>
+                    </h1>
+                    <p class="text-xs text-gray-500">Guild Leader: Angela (ttvemh4r)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="openAdminModal()" class="text-xs font-semibold px-3 py-2 rounded-xl bg-pastel-lavender/60 hover:bg-pastel-lavender text-pastel-dark transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-lock text-pastel-purple"></i> Admin Panel
+                </button>
+                <button onclick="openClaimModal()" class="text-xs font-semibold px-4 py-2 rounded-xl bg-gradient-to-r from-pastel-purple to-pink-400 text-white hover:opacity-95 transition shadow-md shadow-pastel-purple/30 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gift"></i> Claim Rewards
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
+
+        <!-- Hero Status Banner -->
+        <div class="bg-gradient-to-r from-pastel-lavender/70 via-pastel-pink/40 to-pastel-peach/50 rounded-3xl p-6 sm:p-8 border border-pastel-lavender shadow-sm relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-48 h-48 bg-pastel-pink/30 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white/80 text-pastel-purple px-3 py-1 rounded-full shadow-sm mb-3">
+                        <i class="fa-solid fa-star text-amber-400"></i> Wickivy Guild Portal
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-pastel-dark tracking-tight">Level Up Your Guild Activity! 🌸</h2>
+                    <p class="text-sm text-gray-600 mt-1 max-w-xl">
+                        Complete monthly quests, earn XP, unlock exclusive tiers from Novice Cutie to Wickivy Legend, and claim amazing perks!
+                    </p>
+                </div>
+                
+                <div class="bg-white/90 backdrop-blur rounded-2xl p-4 border border-pastel-lavender/60 shadow-sm flex items-center gap-4 min-w-[240px]">
+                    <div class="w-12 h-12 rounded-xl bg-pastel-pink/40 flex items-center justify-center text-pastel-dark text-xl font-black" id="userTierBadge">
+                        T1
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Your Current Standing</div>
+                        <div class="text-base font-bold text-pastel-dark" id="userTierName">Tier 1: Novice Cutie 🌸</div>
+                        <div class="text-xs font-semibold text-pastel-purple mt-0.5"><span id="userTotalXp">0</span> / <span id="userNextXp">300</span> XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Progress Bar -->
+            <div class="mt-8 space-y-2">
+                <div class="flex justify-between text-xs font-bold">
+                    <span id="progressTierLabel">Tier 1: Novice Cutie</span>
+                    <span id="progressPercentLabel">0% to Tier 2</span>
+                </div>
+                <div class="w-full bg-white/70 h-4 rounded-full overflow-hidden p-0.5 border border-pastel-lavender/80 shadow-inner">
+                    <div id="mainProgressBar" class="bg-gradient-to-r from-pastel-purple to-pink-400 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Layout for Tiers & Quests -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2 Cols: Monthly Quests -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-pastel-dark flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-pastel-purple"></i> Monthly Quests 📜
+                        </h3>
+                        <p class="text-xs text-gray-500">Complete these community quests to rack up XP and climb the tiers.</p>
+                    </div>
+                    <span class="text-xs font-semibold bg-pastel-lavender/70 px-3 py-1 rounded-xl text-pastel-dark">
+                        <span id="completedCount">0</span> / <span id="totalQuestsCount">15</span> Completed
+                    </span>
+                </div>
+
+                <!-- Quests Container -->
+                <div id="questsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Right Col: Tier Ladder & Rewards -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-pastel-dark flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-500"></i> Tier Roadmap 👑
+                        </h3>
+                        <p class="text-xs text-gray-500">Unlock roles & perks</p>
+                    </div>
+                </div>
+
+                <!-- Tiers List -->
+                <div id="tiersList" class="space-y-3 bg-white p-4 rounded-3xl border border-pastel-lavender/60 shadow-sm">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-pastel-lavender mt-12 py-6 text-center text-xs text-gray-500 space-y-1">
+        <p>Wickivy Guild Portal &bull; Server IP: <code class="bg-pastel-bg px-2 py-0.5 rounded text-pastel-dark font-mono">hAAALsYA68yThw4</code></p>
+        <p>Designed with 🌸 for Angela & the Wickivy Community</p>
+    </footer>
+
+    <!-- Claim Reward Modal -->
+    <div id="claimModal" class="fixed inset-0 bg-pastel-dark/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pastel-lavender shadow-2xl relative space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-pastel-dark flex items-center gap-2">
+                    <i class="fa-solid fa-gift text-pastel-purple"></i> Claim Your Tier Reward
+                </h3>
+                <button onclick="closeClaimModal()" class="w-8 h-8 rounded-full bg-pastel-bg hover:bg-pastel-lavender flex items-center justify-center text-gray-500 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="claimForm" onsubmit="submitClaim(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Your Discord Tag (e.g., username#0000)</label>
+                    <input type="text" id="discordTag" required placeholder="Angela#1234" class="w-full px-4 py-2.5 rounded-xl border border-pastel-lavender focus:outline-none focus:ring-2 focus:ring-pastel-purple text-sm bg-pastel-bg">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Select Tier to Claim</label>
+                    <select id="claimTierSelect" class="w-full px-4 py-2.5 rounded-xl border border-pastel-lavender focus:outline-none focus:ring-2 focus:ring-pastel-purple text-sm bg-pastel-bg">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Minecraft Username (Optional)</label>
+                    <input type="text" id="minecraftUser" placeholder="angelaWick" class="w-full px-4 py-2.5 rounded-xl border border-pastel-lavender focus:outline-none focus:ring-2 focus:ring-pastel-purple text-sm bg-pastel-bg">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-pastel-purple to-pink-400 text-white font-bold text-sm shadow-md hover:opacity-95 transition">
+                    Send Claim Request to Discord 🚀
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-pastel-dark/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pastel-lavender shadow-2xl relative space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-pastel-dark flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-pastel-purple"></i> Admin Passcode
+                </h3>
+                <button onclick="closeAdminModal()" class="w-8 h-8 rounded-full bg-pastel-bg hover:bg-pastel-lavender flex items-center justify-center text-gray-500 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-500">Enter admin passcode to reset progress or manage settings.</p>
+            <div class="space-y-3">
+                <input type="password" id="adminPasscode" placeholder="Enter passcode..." class="w-full px-4 py-2.5 rounded-xl border border-pastel-lavender focus:outline-none focus:ring-2 focus:ring-pastel-purple text-sm bg-pastel-bg">
+                <button onclick="verifyAdmin()" class="w-full py-3 rounded-xl bg-pastel-dark text-white font-bold text-sm hover:bg-gray-800 transition">
+                    Access Controls
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="adminDashboard" class="fixed inset-0 bg-pastel-dark/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-pastel-lavender shadow-2xl relative space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-pastel-dark flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-pastel-purple"></i> Admin Control Panel
+                </h3>
+                <button onclick="closeAdminDashboard()" class="w-8 h-8 rounded-full bg-pastel-bg hover:bg-pastel-lavender flex items-center justify-center text-gray-500 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="p-4 bg-pastel-bg rounded-2xl border border-pastel-lavender/60 space-y-2">
+                    <h4 class="font-bold text-sm text-pastel-dark">Reset User Progress</h4>
+                    <p class="text-xs text-gray-500">Clear all completed quests and reset XP back to 0.</p>
+                    <button onclick="resetProgress()" class="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-xs hover:bg-red-200 transition">
+                        Reset All XP & Quests
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1565772987435720734/gw1gK9ZfIhT82BfFalXuaOMABEfUKkvpQmSYsCsKzZsmuhfCdUcoizGpjbjP61zdS7dk';
+
+        const tiersData = [
+            { tier: 1, name: "Novice Cutie 🌸", xpRequired: 0, role: "@Cutie Novice" },
+            { tier: 2, name: "Cozy Member 🍵", xpRequired: 300, role: "@Cozy Member" },
+            { tier: 3, name: "Active Chatter 💬", xpRequired: 600, role: "@Active Chatter" },
+            { tier: 4, name: "Media Star 📸", xpRequired: 950, role: "@Media Star" },
+            { tier: 5, name: "Voice Regular 🎙️", xpRequired: 1350, role: "@Voice Regular" },
+            { tier: 6, name: "Guild Supporter 🛡️", xpRequired: 1800, role: "@Guild Supporter" },
+            { tier: 7, name: "Trusted Operative 🕵️", xpRequired: 2300, role: "@Trusted Operative" },
+            { tier: 8, name: "Wickivy Elite ✨", xpRequired: 2900, role: "@Wickivy Elite" },
+            { tier: 9, name: "High Table VIP 🌟", xpRequired: 3600, role: "@High Table VIP" },
+            { tier: 10, name: "Wickivy Legend 👑", xpRequired: 4400, role: "@Wickivy Legend" }
+        ];
+
+        let questsData = [
+            { id: 1, title: "Send 100 messages in chat", xp: 100 },
+            { id: 2, title: "Send 5 pictures / art in media channels", xp: 60 },
+            { id: 3, title: "Voice chat for 2 hours total", xp: 80 },
+            { id: 4, title: "Bump or vote for the server", xp: 40 },
+            { id: 5, title: "Help a new member in chat", xp: 50 },
+            { id: 6, title: "Attend Saturday Movie Night", xp: 100 },
+            { id: 7, title: "Participate in weekly game night", xp: 100 },
+            { id: 8, title: "React to 25 announcements", xp: 30 },
+            { id: 9, title: "Share a recipe or song recommendation", xp: 50 },
+            { id: 10, title: "Invite a friend to the Wickivy Guild", xp: 150 },
+            { id: 11, title: "Post a cute pet or food picture", xp: 40 },
+            { id: 12, title: "Boost the Discord server", xp: 300 },
+            { id: 13, title: "Reach level 10 in mee6 / bot leveling", xp: 120 },
+            { id: 14, title: "Play Minecraft on server for 3 hours", xp: 150 },
+            { id: 15, title: "Send birthday wishes to a guild member", xp: 30 }
+        ];
+
+        let userState = {
+            xp: 0,
+            completedQuests: []
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('wickivy_bp_state');
+                if (saved) userState = JSON.parse(saved);
+            } catch(e) { console.error(e); }
+        }
+
+        function saveState() {
+            localStorage.setItem('wickivy_bp_state', JSON.stringify(userState));
+        }
+
+        function getCurrentTier(xp) {
+            let current = tiersData[0];
+            for (let t of tiersData) {
+                if (xp >= t.xpRequired) current = t;
+                else break;
+            }
+            return current;
+        }
+
+        function getNextTier(currentTierNum) {
+            return tiersData.find(t => t.tier === currentTierNum + 1) || null;
+        }
+
+        function render() {
+            const qList = document.getElementById('questsList');
+            qList.innerHTML = '';
+            let completedCount = 0;
+
+            questsData.forEach(q => {
+                const isDone = userState.completedQuests.includes(q.id);
+                if (isDone) completedCount++;
+
+                qList.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border ${isDone ? 'border-emerald-300 bg-emerald-50/30' : 'border-pastel-lavender/60'} shadow-sm flex items-center justify-between gap-4 transition hover:shadow-md">
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-sm text-pastel-dark flex items-center gap-2">
+                                ${q.title}
+                            </h4>
+                            <span class="inline-block text-xs font-bold text-pastel-purple bg-pastel-lavender/50 px-2 py-0.5 rounded-md">
+                                +${q.xp} XP
+                            </span>
+                        </div>
+                        <button onclick="toggleQuest(${q.id})" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isDone ? 'bg-emerald-500 text-white shadow-md' : 'bg-pastel-bg hover:bg-pastel-lavender text-pastel-dark'}">
+                            <i class="fa-solid ${isDone ? 'fa-check' : 'fa-circle-plus'}"></i>
+                            ${isDone ? 'Done' : 'Complete'}
+                        </button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('completedCount').innerText = completedCount;
+            document.getElementById('totalQuestsCount').innerText = questsData.length;
+
+            const tList = document.getElementById('tiersList');
+            tList.innerHTML = '';
+            const currentTier = getCurrentTier(userState.xp);
+
+            tiersData.forEach(t => {
+                const isUnlocked = userState.xp >= t.xpRequired;
+                const isCurrent = currentTier.tier === t.tier;
+
+                tList.innerHTML += `
+                    <div class="p-3 rounded-2xl border ${isCurrent ? 'border-pastel-purple bg-pastel-lavender/30 ring-2 ring-pastel-purple/20' : isUnlocked ? 'border-emerald-200 bg-emerald-50/20' : 'border-gray-100 bg-gray-50/50'} flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-xl ${isUnlocked ? 'bg-pastel-purple text-white' : 'bg-gray-200 text-gray-500'} flex items-center justify-center font-bold text-xs">
+                                T${t.tier}
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-pastel-dark">${t.name}</h5>
+                                <p class="text-[10px] text-gray-500">${t.xpRequired} XP &bull; Role: ${t.role}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold ${isUnlocked ? 'text-emerald-600' : 'text-gray-400'}">
+                            <i class="fa-solid ${isUnlocked ? 'fa-circle-check' : 'fa-lock'}"></i> ${isUnlocked ? 'Unlocked' : 'Locked'}
+                        </span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('userTotalXp').innerText = userState.xp;
+            document.getElementById('userTierBadge').innerText = `T${currentTier.tier}`;
+            document.getElementById('userTierName').innerText = currentTier.name;
+
+            const nextTier = getNextTier(currentTier.tier);
+            let percent = 100;
+            let nextXpTarget = currentTier.xpRequired;
+
+            if (nextTier) {
+                const xpInCurrentTier = userState.xp - currentTier.xpRequired;
+                const xpNeededForNext = nextTier.xpRequired - currentTier.xpRequired;
+                percent = Math.min(100, Math.max(0, (xpInCurrentTier / xpNeededForNext) * 100));
+                nextXpTarget = nextTier.xpRequired;
+            }
+
+            document.getElementById('userNextXp').innerText = nextXpTarget;
+            document.getElementById('progressTierLabel').innerText = currentTier.name;
+            document.getElementById('progressPercentLabel').innerText = nextTier ? `${Math.round(percent)}% to Tier ${nextTier.tier}` : `Max Tier Reached! 👑`;
+            document.getElementById('mainProgressBar').style.width = `${percent}%`;
+
+            const claimSelect = document.getElementById('claimTierSelect');
+            claimSelect.innerHTML = '';
+            tiersData.forEach(t => {
+                if (userState.xp >= t.xpRequired) {
+                    claimSelect.innerHTML += `<option value="Tier ${t.tier}: ${t.name}">Tier ${t.tier}: ${t.name} (${t.role})</option>`;
+                }
+            });
+        }
+
+        async function postToWebhook(payload) {
+            try {
+                await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.log('Notification sent via webhook');
+            }
+        }
+
+        async function toggleQuest(id) {
+            const quest = questsData.find(q => q.id === id);
+            const index = userState.completedQuests.indexOf(id);
+            const oldTier = getCurrentTier(userState.xp).tier;
+
+            if (index > -1) {
+                userState.completedQuests.splice(index, 1);
+                userState.xp = Math.max(0, userState.xp - quest.xp);
+            } else {
+                userState.completedQuests.push(id);
+                userState.xp += quest.xp;
+            }
+
+            saveState();
+            render();
+
+            const newTier = getCurrentTier(userState.xp).tier;
+            if (newTier > oldTier) {
+                const currentTierObj = getCurrentTier(userState.xp);
+                setTimeout(async () => {
+                    const discordTag = prompt(`🎉 LEVEL UP! You reached Tier ${newTier} (${currentTierObj.name})!\nEnter your Discord username to alert the channel:`);
+                    if (discordTag) {
+                        await postToWebhook({
+                            content: `🎉 **TIER UNLOCKED!** <@${discordTag}> reached **Tier ${currentTierObj.tier} (${currentTierObj.name})**! 👑✨`,
+                            embeds: [{
+                                title: "🚀 Wickivy Battle Pass Progression",
+                                description: `**${discordTag}** leveled up to **Tier ${currentTierObj.tier}: ${currentTierObj.name}**!\nRole Unlocked: **${currentTierObj.role}** 🌸`,
+                                color: 14129183,
+                                timestamp: new Date().toISOString()
+                            }]
+                        });
+                        alert("Level up notification sent to Discord! 🌸");
+                    }
+                }, 100);
+            }
+        }
+
+        async function submitClaim(event) {
+            event.preventDefault();
+            const discordTag = document.getElementById('discordTag').value;
+            const tierClaimed = document.getElementById('claimTierSelect').value;
+            const mcUser = document.getElementById('minecraftUser').value || 'None';
+
+            await postToWebhook({
+                embeds: [{
+                    title: "🎁 New Battle Pass Reward Claim!",
+                    color: 15413982,
+                    fields: [
+                        { name: "Discord User", value: discordTag, inline: true },
+                        { name: "Tier Claimed", value: tierClaimed, inline: true },
+                        { name: "Minecraft User", value: mcUser, inline: true }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            });
+
+            alert("Reward claim submitted to Discord! 🌸");
+            closeClaimModal();
+        }
+
+        function openClaimModal() { document.getElementById('claimModal').classList.remove('hidden'); }
+        function closeClaimModal() { document.getElementById('claimModal').classList.add('hidden'); }
+        function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+        function verifyAdmin() {
+            const pass = document.getElementById('adminPasscode').value;
+            if (pass === 'wickivy123' || pass === 'Angela' || pass === 'angela') {
+                closeAdminModal();
+                document.getElementById('adminDashboard').classList.remove('hidden');
+            } else {
+                alert('Incorrect passcode!');
+            }
+        }
+        function closeAdminDashboard() { document.getElementById('adminDashboard').classList.add('hidden'); }
+        function resetProgress() {
+            if (confirm("Reset all XP and quest progress?")) {
+                userState = { xp: 0, completedQuests: [] };
+                saveState();
+                render();
+                closeAdminDashboard();
+                alert("Progress reset!");
+            }
+        }
+
+        window.onload = () => {
+            loadState();
+            render();
+        };
+    </script>
+</body>
+</html>
